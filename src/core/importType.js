@@ -85,15 +85,25 @@ function isRelativeToSibling(name) {
 }
 
 function typeTest(name, settings, path, context) {
-  if (isAbsolute(name)) { return 'absolute' }
-  if (isBuiltIn(name, settings, path)) { return'builtin' }
-  if (isModule(name) || isScoped(name)) {
+  if (isAbsolute(name, settings, path)) {
+    return 'absolute'
+  }
+  if (isBuiltIn(name, settings, path)) {
+    return 'builtin'
+  }
+  if (isModule(name, settings, path) || isScoped(name, settings, path)) {
     const packagePath = getContextPackagePath(context)
     return (isExternalPath(name, settings, path, packagePath)) ? 'external' : 'internal'
   }
-  if (isRelativeToParent(name)) { return'parent' }
-  if (isIndex(name)) { return'index' }
-  if (isRelativeToSibling(name)) { return'sibling' }
+  if (isRelativeToParent(name, settings, path)) {
+    return 'parent'
+  }
+  if (isIndex(name, settings, path)) {
+    return 'index'
+  }
+  if (isRelativeToSibling(name, settings, path)) {
+    return 'sibling'
+  }
   return 'unknown'
 }
 
