@@ -130,7 +130,11 @@ module.exports = {
       const slashCount = file.split('/').length - 1
 
       if (isScopedModule(file) && slashCount <= 1) return true
-      if (isExternalModule(file, context, resolve(file, context)) && !slashCount) return true
+      if (isExternalModule(
+        file,
+        context.settings,
+        resolve(file, context),
+        context) && !slashCount) return true
       return false
     }
 
@@ -158,8 +162,11 @@ module.exports = {
       const extension = path.extname(resolvedPath || importPath).substring(1)
 
       // determine if this is a module
-      const isPackage = isExternalModule(importPath, context.settings)
-        || isScoped(importPath)
+      const isPackage = isExternalModule(
+        importPath,
+        context.settings,
+        resolve(importPath, context),
+        context) || isScoped(importPath)
 
       if (!extension || !importPath.endsWith(`.${extension}`)) {
         const extensionRequired = isUseOfExtensionRequired(extension, isPackage)
