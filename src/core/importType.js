@@ -25,6 +25,14 @@ export function isBuiltIn(name, settings, path) {
   return coreModules[base] || extras.indexOf(base) > -1
 }
 
+export function isExternalModule(name, settings, path, context) {
+  return isModule(name) && isExternalPath(name, settings, path, getContextPackagePath(context))
+}
+
+export function isExternalModuleMain(name, settings, path, context) {
+  return isModuleMain(name) && isExternalPath(name, settings, path, getContextPackagePath(context))
+}
+
 function isExternalPath(name, settings, path, packagePath) {
   const internalScope = (settings && settings['import/internal-regex'])
   if (internalScope && RegExp(internalScope).test(name)) {
@@ -44,15 +52,13 @@ function isExternalPath(name, settings, path, packagePath) {
 }
 
 const moduleRegExp = /^\w/
-export function isExternalModule(name, settings, path, context) {
-  const packagePath = getContextPackagePath(context)
-  return moduleRegExp.test(name) && isExternalPath(name, settings, path, packagePath)
+function isModule(name) {
+  return name && moduleRegExp.test(name)
 }
 
 const moduleMainRegExp = /^[\w]((?!\/).)*$/
-export function isExternalModuleMain(name, settings, path, context) {
-  const packagePath = getContextPackagePath(context)
-  return moduleMainRegExp.test(name) && isExternalPath(name, settings, path, packagePath)
+function isModuleMain(name) {
+  return name && moduleMainRegExp.test(name)
 }
 
 const scopedRegExp = /^@[^/]*\/?[^/]+/
@@ -78,22 +84,17 @@ function isRelativeToSibling(name) {
   return /^\.[\\/]/.test(name)
 }
 
-const specialCharsRegExp = /[\s~#$!%^&*(),?"':{}|<>]/
-const firstCharsRegExp = /^[-_]/
-function isUnknown(name, path) {
-  // do not return unknown if path has been resolved through the resolvers
-  return (!path && name && (specialCharsRegExp.test(name) || firstCharsRegExp.test(name)))
-}
-
 function typeTest(name, settings, path, context) {
   if (isAbsolute(name)) { return 'absolute' }
   if (isBuiltIn(name, settings, path)) { return'builtin' }
+  if (isModule(name) || isScoped(name)) {
+    const packagePath = getContextPackagePath(context)
+    return (isExternalPath(name, settings, path, packagePath)) ? 'external' : 'internal'
+  }
   if (isRelativeToParent(name)) { return'parent' }
   if (isIndex(name)) { return'index' }
   if (isRelativeToSibling(name)) { return'sibling' }
-  if (isUnknown(name, path)) { return 'unknown' }
-  const packagePath = getContextPackagePath(context)
-  return (isExternalPath(name, settings, path, packagePath)) ? 'external' : 'internal'
+  return 'unknown'
 }
 
 export function isScopedModule(name) {
