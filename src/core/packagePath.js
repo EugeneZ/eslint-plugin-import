@@ -1,5 +1,6 @@
 import {dirname} from 'path'
 import findUp from 'find-up'
+import readPkgUp from 'read-pkg-up'
 
 
 export function getContextPackagePath(context) {
@@ -7,6 +8,11 @@ export function getContextPackagePath(context) {
 }
 
 export function getFilePackagePath(filePath) {
-  const fp = findUp.sync('package.json', {cwd: filePath, normalize: false})
+  const fp = findUp.sync('package.json', {cwd: filePath})
   return dirname(fp)
+}
+
+export function getFilePackageName(filePath) {
+  const pkg = readPkgUp.sync({cwd: filePath, normalize: false}).pkg
+  return pkg && pkg.name
 }

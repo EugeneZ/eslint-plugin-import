@@ -4,6 +4,7 @@ import readPkgUp from 'read-pkg-up'
 import minimatch from 'minimatch'
 import resolve from 'eslint-module-utils/resolve'
 import importType from '../core/importType'
+import { getFilePackageName } from '../core/packagePath'
 import isStaticRequire from '../core/staticRequire'
 import docsUrl from '../docsUrl'
 
@@ -109,6 +110,17 @@ function optDepErrorMessage(packageName) {
     `not optionalDependencies.`
 }
 
+function getModuleOriginalName(name) {
+  const splitName = name.split('/')
+  return splitName[0][0] === '@'
+    ? splitName.slice(0, 2).join('/')
+    : splitName[0]
+}
+
+function getModuleRealName(resolved) {
+  return getFilePackageName(resolved)
+}
+
 function reportIfMissing(context, deps, depsOptions, node, name) {
   // Do not report when importing types
   if (node.importKind === 'type') {
@@ -122,10 +134,11 @@ function reportIfMissing(context, deps, depsOptions, node, name) {
   const resolved = resolve(name, context)
   if (!resolved) { return }
 
-  const splitName = name.split('/')
-  const packageName = splitName[0][0] === '@'
-    ? splitName.slice(0, 2).join('/')
-    : splitName[0]
+  // get the real name from the resolved package.json
+  // if not aliased imports (alias/react for example) will not be correctly interpreted
+  // fallback on original name in case no package.json found
+  const packageName = getModuleRealName(resolved) || getModuleOriginalName(name)
+
   const isInDeps = deps.dependencies[packageName] !== undefined
   const isInDevDeps = deps.devDependencies[packageName] !== undefined
   const isInOptDeps = deps.optionalDependencies[packageName] !== undefined
