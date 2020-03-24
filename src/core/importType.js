@@ -1,6 +1,8 @@
+import { isAbsolute, relative, resolve } from 'path'
 import coreModules from 'resolve/lib/core'
 
 import resolve from 'eslint-module-utils/resolve'
+import { getContextPackagePath } from './packagePath'
 
 function baseModule(name) {
   if (isScoped(name)) {
@@ -12,7 +14,7 @@ function baseModule(name) {
 }
 
 export function isAbsolute(name) {
-  return name.indexOf('/') === 0
+  return isAbsolute(name)
 }
 
 // path is defined only when a resolver resolves to a non-standard path
@@ -23,32 +25,40 @@ export function isBuiltIn(name, settings, path) {
   return coreModules[base] || extras.indexOf(base) > -1
 }
 
-function isExternalPath(path, name, settings) {
-  const folders = (settings && settings['import/external-module-folders']) || ['node_modules']
-  return !path || folders.some(folder => isSubpath(folder, path))
+export function isExternalModule(name, settings, path, context) {
+  return isModule(name) && isExternalPath(name, settings, path, getContextPackagePath(context))
 }
 
-function isSubpath(subpath, path) {
-  const normPath = path.replace(/\\/g, '/')
-  const normSubpath = subpath.replace(/\\/g, '/').replace(/\/$/, '')
-  if (normSubpath.length === 0) {
+export function isExternalModuleMain(name, settings, path, context) {
+  return isModuleMain(name) && isExternalPath(name, settings, path, getContextPackagePath(context))
+}
+
+function isExternalPath(name, settings, path, packagePath) {
+  const internalScope = (settings && settings['import/internal-regex'])
+  if (internalScope && RegExp(internalScope).test(name)) {
     return false
   }
-  const left = normPath.indexOf(normSubpath)
-  const right = left + normSubpath.length
-  return left !== -1 &&
-        (left === 0 || normSubpath[0] !== '/' && normPath[left - 1] === '/') &&
-        (right >= normPath.length || normPath[right] === '/')
+
+  if (!path || relative(packagePath, path).startsWith('..')) {
+    return true
+  }
+
+  const folders = (settings && settings['import/external-module-folders']) || ['node_modules']
+  return folders.some((folder) => {
+    const folderPath = resolve(packagePath, folder)
+    const relativePath = relative(folderPath, path)
+    return !relativePath.startsWith('..')
+  })
 }
 
-const externalModuleRegExp = /^\w/
-export function isExternalModule(name, settings, path) {
-  return externalModuleRegExp.test(name) && isExternalPath(path, name, settings)
+const moduleRegExp = /^\w/
+function isModule(name) {
+  return name && moduleRegExp.test(name)
 }
 
-const externalModuleMainRegExp = /^[\w]((?!\/).)*$/
-export function isExternalModuleMain(name, settings, path) {
-  return externalModuleMainRegExp.test(name) && isExternalPath(path, name, settings)
+const moduleMainRegExp = /^[\w]((?!\/).)*$/
+function isModuleMain(name) {
+  return name && moduleMainRegExp.test(name)
 }
 
 const scopedRegExp = /^@[^/]*\/?[^/]+/
@@ -59,12 +69,6 @@ export function isScoped(name) {
 const scopedMainRegExp = /^@[^/]+\/?[^/]+$/
 export function isScopedMain(name) {
   return name && scopedMainRegExp.test(name)
-}
-
-function isInternalModule(name, settings, path) {
-  const internalScope = (settings && settings['import/internal-regex'])
-  const matchesScopedOrExternalRegExp = scopedRegExp.test(name) || externalModuleRegExp.test(name)
-  return (matchesScopedOrExternalRegExp && (internalScope && new RegExp(internalScope).test(name) || !isExternalPath(path, name, settings)))
 }
 
 function isRelativeToParent(name) {
@@ -80,12 +84,14 @@ function isRelativeToSibling(name) {
   return /^\.[\\/]/.test(name)
 }
 
-function typeTest(name, settings, path) {
+function typeTest(name, context, path) {
+  const {settings} = context
   if (isAbsolute(name, settings, path)) { return 'absolute' }
   if (isBuiltIn(name, settings, path)) { return 'builtin' }
-  if (isInternalModule(name, settings, path)) { return 'internal' }
-  if (isExternalModule(name, settings, path)) { return 'external' }
-  if (isScoped(name, settings, path)) { return 'external' }
+  if (isModule(name, settings, path) || isScoped(name, settings, path)) {
+    const packagePath = getContextPackagePath(context)
+    return isExternalPath(name, settings, path, packagePath) ? 'external' : 'internal'
+  }
   if (isRelativeToParent(name, settings, path)) { return 'parent' }
   if (isIndex(name, settings, path)) { return 'index' }
   if (isRelativeToSibling(name, settings, path)) { return 'sibling' }
@@ -97,5 +103,5 @@ export function isScopedModule(name) {
 }
 
 export default function resolveImportType(name, context) {
-  return typeTest(name, context.settings, resolve(name, context))
+  return typeTest(name, context, resolve(name, context))
 }
