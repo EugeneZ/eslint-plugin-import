@@ -1,4 +1,4 @@
-import * as PATH from 'path'
+import PATH from 'path'
 import coreModules from 'resolve/lib/core'
 
 import resolve from 'eslint-module-utils/resolve'
