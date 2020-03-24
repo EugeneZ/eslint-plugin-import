@@ -1,3 +1,4 @@
+import * as PATH from 'path'
 import coreModules from 'resolve/lib/core'
 
 import resolve from 'eslint-module-utils/resolve'
@@ -12,7 +13,7 @@ function baseModule(name) {
 }
 
 export function isAbsolute(name) {
-  return name.indexOf('/') === 0
+  return PATH.isAbsolute(name)
 }
 
 // path is defined only when a resolver resolves to a non-standard path
