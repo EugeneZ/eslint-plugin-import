@@ -84,7 +84,8 @@ function isRelativeToSibling(name) {
   return /^\.[\\/]/.test(name)
 }
 
-function typeTest(name, settings, path, context) {
+function typeTest(name, context, path) {
+  const {settings} = context
   if (isAbsolute(name, settings, path)) {
     return 'absolute'
   }
@@ -112,5 +113,5 @@ export function isScopedModule(name) {
 }
 
 export default function resolveImportType(name, context) {
-  return typeTest(name, context.settings, resolve(name, context), context)
+  return typeTest(name, context, resolve(name, context))
 }
