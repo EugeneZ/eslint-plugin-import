@@ -13,6 +13,6 @@ export function getFilePackagePath(filePath) {
 }
 
 export function getFilePackageName(filePath) {
-  const pkg = readPkgUp.sync({cwd: filePath, normalize: false}).pkg
+  const {pkg} = readPkgUp.sync({cwd: filePath, normalize: false})
   return pkg && pkg.name
 }
