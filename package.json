@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-import",
-  "version": "2.20.1",
+  "version": "2.20.2",
   "description": "Import with sanity.",
   "engines": {
     "node": ">=4"
@@ -67,7 +67,7 @@
     "chai": "^4.2.0",
     "coveralls": "^3.0.6",
     "cross-env": "^4.0.0",
-    "eslint": "2.x - 6.x",
+    "eslint": "^2 || ^3 || ^4 || ^5 || ^6 || ^7.0.0-0",
     "eslint-import-resolver-node": "file:./resolvers/node",
     "eslint-import-resolver-typescript": "^1.0.2",
     "eslint-import-resolver-webpack": "file:./resolvers/webpack",
@@ -75,6 +75,7 @@
     "eslint-module-utils": "file:./utils",
     "eslint-plugin-eslint-plugin": "^2.2.1",
     "eslint-plugin-import": "2.x",
+    "esquery": "~1.1.0",
     "in-publish": "^2.0.0",
     "linklocal": "^2.8.2",
     "mocha": "^3.5.3",
@@ -87,7 +88,7 @@
     "typescript-eslint-parser": "^22.0.0"
   },
   "peerDependencies": {
-    "eslint": "2.x - 6.x"
+    "eslint": "^2 || ^3 || ^4 || ^5 || ^6 || ^7.0.0-0"
   },
   "dependencies": {
     "array-includes": "^3.0.3",
