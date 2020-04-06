@@ -1,4 +1,4 @@
-import { isAbsolute, relative, resolve } from 'path'
+import {isAbsolute, relative, resolve as nodeResolve} from 'path'
 import coreModules from 'resolve/lib/core'
 
 import resolve from 'eslint-module-utils/resolve'
@@ -45,7 +45,7 @@ function isExternalPath(name, settings, path, packagePath) {
 
   const folders = (settings && settings['import/external-module-folders']) || ['node_modules']
   return folders.some((folder) => {
-    const folderPath = resolve(packagePath, folder)
+    const folderPath = nodeResolve(packagePath, folder)
     const relativePath = relative(folderPath, path)
     return !relativePath.startsWith('..')
   })
