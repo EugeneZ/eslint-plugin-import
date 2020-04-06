@@ -1,4 +1,4 @@
-import {isAbsolute, relative, resolve as nodeResolve} from 'path'
+import {isAbsolute as nodeIsAbsolute, relative, resolve as nodeResolve} from 'path'
 import coreModules from 'resolve/lib/core'
 
 import resolve from 'eslint-module-utils/resolve'
@@ -14,7 +14,7 @@ function baseModule(name) {
 }
 
 export function isAbsolute(name) {
-  return isAbsolute(name)
+  return nodeIsAbsolute(name)
 }
 
 // path is defined only when a resolver resolves to a non-standard path
