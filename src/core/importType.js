@@ -1,4 +1,4 @@
-import PATH from 'path'
+import { isAbsolute, relative, resolve } from 'path'
 import coreModules from 'resolve/lib/core'
 
 import resolve from 'eslint-module-utils/resolve'
@@ -14,7 +14,7 @@ function baseModule(name) {
 }
 
 export function isAbsolute(name) {
-  return PATH.isAbsolute(name)
+  return isAbsolute(name)
 }
 
 // path is defined only when a resolver resolves to a non-standard path
@@ -39,14 +39,14 @@ function isExternalPath(name, settings, path, packagePath) {
     return false
   }
 
-  if (!path || PATH.relative(packagePath, path).startsWith('..')) {
+  if (!path || relative(packagePath, path).startsWith('..')) {
     return true
   }
 
   const folders = (settings && settings['import/external-module-folders']) || ['node_modules']
   return folders.some((folder) => {
-    const folderPath = PATH.resolve(packagePath, folder)
-    const relativePath = PATH.relative(folderPath, path)
+    const folderPath = resolve(packagePath, folder)
+    const relativePath = relative(folderPath, path)
     return !relativePath.startsWith('..')
   })
 }
@@ -86,25 +86,15 @@ function isRelativeToSibling(name) {
 
 function typeTest(name, context, path) {
   const {settings} = context
-  if (isAbsolute(name, settings, path)) {
-    return 'absolute'
-  }
-  if (isBuiltIn(name, settings, path)) {
-    return 'builtin'
-  }
+  if (isAbsolute(name, settings, path)) { return 'absolute' }
+  if (isBuiltIn(name, settings, path)) { return 'builtin' }
   if (isModule(name, settings, path) || isScoped(name, settings, path)) {
     const packagePath = getContextPackagePath(context)
-    return (isExternalPath(name, settings, path, packagePath)) ? 'external' : 'internal'
+    return isExternalPath(name, settings, path, packagePath) ? 'external' : 'internal'
   }
-  if (isRelativeToParent(name, settings, path)) {
-    return 'parent'
-  }
-  if (isIndex(name, settings, path)) {
-    return 'index'
-  }
-  if (isRelativeToSibling(name, settings, path)) {
-    return 'sibling'
-  }
+  if (isRelativeToParent(name, settings, path)) { return 'parent' }
+  if (isIndex(name, settings, path)) { return 'index' }
+  if (isRelativeToSibling(name, settings, path)) { return 'sibling' }
   return 'unknown'
 }
 
